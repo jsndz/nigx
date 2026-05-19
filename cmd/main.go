@@ -7,9 +7,15 @@ import (
 	"nigx/internals/loadbalancer"
 	"nigx/internals/proxy"
 	"nigx/internals/static"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
 
-func HandlerRequests(conn net.Conn, cfg *config.Config, lb *loadbalancer.LoadBalancer) {
+func HandlerRequests(conn net.Conn, cfg *config.Config, lb *loadbalancer.LoadBalancer, wg *sync.WaitGroup) {
+	defer wg.Done()
+	defer conn.Close()
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
@@ -26,10 +32,11 @@ func HandlerRequests(conn net.Conn, cfg *config.Config, lb *loadbalancer.LoadBal
 			res = http.NewHttpResponse("HTTP/1.1", 200, "OK", map[string]string{"Content-Type": "text/html"}, data)
 		}
 		conn.Write(res.Bytes())
+		return
 
 	}
 	if params, ok := proxy.IsProxyRequest(cfg.Route, req.Url); ok {
-		if len(cfg.Proxies) == 0 {
+		if len(cfg.Proxies) == 1 {
 			respByte := proxy.ProxyRequest(req, cfg.Proxies[0], params)
 			conn.Write(respByte)
 		} else {
@@ -39,22 +46,30 @@ func HandlerRequests(conn net.Conn, cfg *config.Config, lb *loadbalancer.LoadBal
 
 		}
 	}
-	conn.Close()
 
 }
 func main() {
 	lis, err := net.Listen("tcp", ":8080")
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	var wg sync.WaitGroup
 	if err != nil {
 		panic(err)
 	}
-
+	go func() {
+		<-sigChan
+		lis.Close()
+	}()
 	cfg := config.NewConfig("/api/", []string{"https://jsonplaceholder.typicode.com/"})
 	lb := loadbalancer.NewLoadBalancer(cfg.Proxies)
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			panic(err)
+			break
 		}
-		go HandlerRequests(conn, cfg, lb)
+		wg.Add(1)
+		go HandlerRequests(conn, cfg, lb, &wg)
 	}
+	wg.Wait()
+
 }

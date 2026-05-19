@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"nigx/internals/http"
 )
 
 func main() {
@@ -14,5 +15,5 @@ func main() {
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	fmt.Print(string(buf[:n]))
-	conn.Write([]byte("Accepted"))
+	http.NewHttpRequest(string(buf[:n]))
 }

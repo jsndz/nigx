@@ -11,9 +11,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	conn, err := lis.Accept()
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	fmt.Print(string(buf[:n]))
-	http.NewHttpRequest(string(buf[:n]))
+
+	for {
+		conn, err := lis.Accept()
+		if err != nil {
+			panic(err)
+		}
+		go func() {
+
+			buf := make([]byte, 1024)
+			n, err := conn.Read(buf)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Print(string(buf[:n]))
+			http.NewHttpRequest(string(buf[:n]))
+			conn.Write(http.NewHttpResponse())
+		}()
+	}
 }

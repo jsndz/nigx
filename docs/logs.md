@@ -21,3 +21,17 @@ Content-Length: 19
 
 this in bytes
 Here we can parse this to get a http request
+
+
+# 3: Handling HTTP response
+
+In the same way we get http response 
+For now lets write our own response and send it as bytes
+
+# 4: Concurrency
+
+Nginx can handle thousands of concurrent request due to its event drive architecture.
+But for now implementing a event loop will be complex so lets go with handling concurrent request with goroutines
+Here the working will be similar
+Master Process -> handles creating and managing workers
+Worker Process -> Goroutines handling http request

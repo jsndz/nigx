@@ -35,3 +35,9 @@ But for now implementing a event loop will be complex so lets go with handling c
 Here the working will be similar
 Master Process -> handles creating and managing workers
 Worker Process -> Goroutines handling http request
+
+
+# 5: Serving static files 
+
+Nginx also can server static files
+If the http request is asking for a static file and if it exist in the system then return it

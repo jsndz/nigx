@@ -17,6 +17,7 @@ const (
 type HttpRequest struct {
 	Method        HttpMethod
 	Version       int
+	Url           string
 	Host          string
 	UserAgent     string
 	ContentType   string
@@ -31,8 +32,6 @@ func NewHttpRequest(request string) *HttpRequest {
 		return nil
 	}
 
-	// Parse request line
-	// Example: POST / HTTP/1.1
 	requestLine := strings.Split(lines[0], " ")
 	if len(requestLine) < 3 {
 		return nil
@@ -48,6 +47,7 @@ func NewHttpRequest(request string) *HttpRequest {
 	req := &HttpRequest{
 		Method:  method,
 		Version: version,
+		Url:     requestLine[1],
 	}
 
 	for i := 1; i < len(lines); i++ {

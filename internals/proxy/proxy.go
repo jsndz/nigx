@@ -19,20 +19,22 @@ func ProxyRequest(req *http.HttpRequest, proxyUrl string, params string) []byte 
 
 	resp, err := client.Do(proxyReq)
 	if err != nil {
-		panic(err)
+		httpresp := http.NewHttpResponse("HTTP/1.1", 502, "Bad Gateway", map[string]string{"Content-Type": "text/plain"}, []byte("502 Bad Gateway"))
+		return httpresp.Bytes()
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		httpresp := http.NewHttpResponse("HTTP/1.1", 502, "Bad Gateway", map[string]string{"Content-Type": "text/plain"}, []byte("502 Bad Gateway"))
+		return httpresp.Bytes()
 	}
 	headers := map[string]string{}
 
 	for k, v := range resp.Header {
 		headers[k] = strings.Join(v, ", ")
 	}
-	httpresp := http.NewHttpResponse("1.1", resp.StatusCode, nethttp.StatusText(resp.StatusCode), headers, body)
+	httpresp := http.NewHttpResponse("HTTP/1.1", resp.StatusCode, nethttp.StatusText(resp.StatusCode), headers, body)
 	return httpresp.Bytes()
 }
 

@@ -1,13 +1,13 @@
 package config
 
 type Config struct {
-	Route string
-	Proxy string
+	Route   string
+	Proxies []string
 }
 
-func NewConfig(route string, proxy string) *Config {
+func NewConfig(route string, proxies []string) *Config {
 	return &Config{
-		Route: route,
-		Proxy: proxy,
+		Route:   route,
+		Proxies: proxies,
 	}
 }

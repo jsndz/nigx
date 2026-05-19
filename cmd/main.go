@@ -4,11 +4,12 @@ import (
 	"net"
 	"nigx/internals/config"
 	"nigx/internals/http"
+	"nigx/internals/loadbalancer"
 	"nigx/internals/proxy"
 	"nigx/internals/static"
 )
 
-func HandlerRequests(conn net.Conn, cfg *config.Config) {
+func HandlerRequests(conn net.Conn, cfg *config.Config, lb *loadbalancer.LoadBalancer) {
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
@@ -28,9 +29,15 @@ func HandlerRequests(conn net.Conn, cfg *config.Config) {
 
 	}
 	if params, ok := proxy.IsProxyRequest(cfg.Route, req.Url); ok {
-		respByte := proxy.ProxyRequest(req, cfg.Proxy, params)
-		conn.Write(respByte)
+		if len(cfg.Proxies) == 0 {
+			respByte := proxy.ProxyRequest(req, cfg.Proxies[0], params)
+			conn.Write(respByte)
+		} else {
+			server := lb.NextServer()
+			respByte := proxy.ProxyRequest(req, server, params)
+			conn.Write(respByte)
 
+		}
 	}
 	conn.Close()
 
@@ -40,12 +47,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	cfg := config.NewConfig("/api/", "https://jsonplaceholder.typicode.com/")
+
+	cfg := config.NewConfig("/api/", []string{"https://jsonplaceholder.typicode.com/"})
+	lb := loadbalancer.NewLoadBalancer(cfg.Proxies)
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
 			panic(err)
 		}
-		go HandlerRequests(conn, cfg)
+		go HandlerRequests(conn, cfg, lb)
 	}
 }

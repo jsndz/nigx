@@ -49,3 +49,10 @@ Nginx does reverse proxy by checking against the config and if the url matches
 it send the http req where it can add some headers and then sent the req to url backend mentioned in config
 the response is received and convert to a standard response and returned to the client 
 here using http lib for easy handling 
+
+
+# 7: Loadbalancer 
+
+Nginx also does loadbalancing. It distributes load to different servers.
+which is configured in the config file.
+Here i implemented a simple loadbalancer using round robin

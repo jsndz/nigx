@@ -1,6 +1,8 @@
 package http
 
 import (
+	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -88,4 +90,45 @@ func NewHttpRequest(request string) *HttpRequest {
 	}
 
 	return req
+}
+
+func (req *HttpRequest) Bytes() []byte {
+	var buf bytes.Buffer
+
+	version := "HTTP/1.1"
+	if req.Version == 0 {
+		version = "HTTP/1.0"
+	}
+
+	fmt.Fprintf(
+		&buf,
+		"%s %s %s\r\n",
+		req.Method,
+		req.Url,
+		version,
+	)
+
+	if req.Host != "" {
+		fmt.Fprintf(&buf, "Host: %s\r\n", req.Host)
+	}
+
+	if req.UserAgent != "" {
+		fmt.Fprintf(&buf, "User-Agent: %s\r\n", req.UserAgent)
+	}
+
+	if req.ContentType != "" {
+		fmt.Fprintf(&buf, "Content-Type: %s\r\n", req.ContentType)
+	}
+
+	if req.Body != "" {
+		fmt.Fprintf(&buf, "Content-Length: %d\r\n", len(req.Body))
+	}
+
+	buf.WriteString("\r\n")
+
+	if req.Body != "" {
+		buf.WriteString(req.Body)
+	}
+
+	return buf.Bytes()
 }

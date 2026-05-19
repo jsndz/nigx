@@ -20,7 +20,7 @@ func GetStaticFiles(url string) ([]byte, error) {
 	return data, nil
 }
 
-func TryFiles(url string) ([]byte, error) {
+func TryFiles(url string) bool {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -29,8 +29,8 @@ func TryFiles(url string) ([]byte, error) {
 	path := path.Join(cwd, "public", url)
 	_, err = os.Stat(path)
 	if err == nil {
-		return GetStaticFiles(url)
+		return true
 	}
 
-	return nil, errors.New("File not found")
+	return false
 }

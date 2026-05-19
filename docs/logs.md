@@ -41,3 +41,11 @@ Worker Process -> Goroutines handling http request
 
 Nginx also can server static files
 If the http request is asking for a static file and if it exist in the system then return it
+
+
+# 6: Reverse Proxy
+
+Nginx does reverse proxy by checking against the config and if the url matches
+it send the http req where it can add some headers and then sent the req to url backend mentioned in config
+the response is received and convert to a standard response and returned to the client 
+here using http lib for easy handling 
